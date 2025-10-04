@@ -2,12 +2,12 @@
 #'
 #' A dataset containing dummy data for demonstrating function 2 ("validate_lab_result").
 #'
-#' \itemize{
-#'   \item patient_id: Indicates the identifier of the tested patient.
-#'   \item lab_datetime1: Indicates the date or datetime of the laboratory test.
-#'   \item loinc_code: Indicates the LOINC code of the laboratory test.
-#'   \item result_value: Indicates the quantitative result values for validation.
-#'   \item result_unit: Indicates the result units in a UCUM-valid format.
+#' \describe{
+#'   \item{patient_id}{Identifier of the tested patient.}
+#'   \item{lab_datetime1}{Date or datetime of the laboratory test.}
+#'   \item{loinc_code}{LOINC code of the laboratory test.}
+#'   \item{result_value}{Quantitative result value for validation.}
+#'   \item{result_unit}{Result unit in UCUM-compliant format.}
 #' }
 #'
 #' @docType data

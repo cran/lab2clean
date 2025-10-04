@@ -14,16 +14,16 @@ data(common_words)
 A dataset containing data for common words.
 }
 \details{
-\itemize{
-\item Language: Contains 19 different languages.
-\item Positive: Displays the word "Positive" in 19 different languages.
-\item Negative: Displays the word "Negative" in 19 different languages.
-\item Not_detected: Displays the phrase "Not detected" in 19 different languages.
-\item High: Displays the word "High" in 19 different languages.
-\item Low: Displays the word "Low" in 19 different languages.
-\item Normal: Displays the word "Normal" in 19 different languages.
-\item Sample: Displays the word "Sample" in 19 different languages.
-\item Specimen: Displays the word "Specimen" in 19 different languages.
+\describe{
+  \item{Language}{The name of the language.}
+  \item{Positive}{Translation of the word "Positive".}
+  \item{Negative}{Translation of the word "Negative".}
+  \item{Not_detected}{Translation of the phrase "Not detected".}
+  \item{High}{Translation of the word "High".}
+  \item{Low}{Translation of the word "Low".}
+  \item{Normal}{Translation of the word "Normal".}
+  \item{Sample}{Translation of the word "Sample".}
+  \item{Specimen}{Translation of the word "Specimen".}
 }
 }
 \keyword{datasets}

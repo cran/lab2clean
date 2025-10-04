@@ -2,11 +2,11 @@
 #'
 #' A dataset containing data for the logic rules.
 #'
-#' \itemize{
-#'   \item rule_id: The rule ID.
-#'   \item rule_index: The rule index.
-#'   \item rule_part: The rule part.
-#'   \item rule_part_type: The rule part type.
+#' \describe{
+#'   \item{rule_id}{Identifier for the logic rule.}
+#'   \item{rule_index}{The sequence index of the rule.}
+#'   \item{rule_part}{The textual content of the rule part.}
+#'   \item{rule_part_type}{The type/category of the rule part (e.g., operator, term, value).}
 #' }
 #'
 #' @docType data

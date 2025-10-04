@@ -14,11 +14,11 @@ data(reportable_interval)
 A dataset containing data for the reportable interval.
 }
 \details{
-\itemize{
-\item interval_loinc_code: The interval of the LOINC code.
-\item UCUM_unit: The UCUM unit.
-\item low_reportable_limit: The lower reportable limit.
-\item high_reportable_limit: The higher reportable limit.
+\describe{
+  \item{interval_loinc_code}{The LOINC code to which the reportable interval applies.}
+  \item{UCUM_unit}{The UCUM-compliant unit for the laboratory measurement.}
+  \item{low_reportable_limit}{The lower limit of the reportable range.}
+  \item{high_reportable_limit}{The upper limit of the reportable range.}
 }
 }
 \keyword{datasets}

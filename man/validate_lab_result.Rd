@@ -17,58 +17,50 @@ validate_lab_result(
 \arguments{
 \item{lab_data}{A data frame containing laboratory data.}
 
-\item{result_value}{The column in \code{lab_data} with quantitative result values for validation.}
+\item{result_value}{The column in `lab_data` with quantitative result values for validation.}
 
-\item{result_unit}{The column in \code{lab_data} with result units in a UCUM-valid format.}
+\item{result_unit}{The column in `lab_data` with result units in a UCUM-valid format.}
 
-\item{loinc_code}{The column in \code{lab_data} indicating the LOINC code of the laboratory test.}
+\item{loinc_code}{The column in `lab_data` indicating the LOINC code of the laboratory test.}
 
-\item{patient_id}{The column in \code{lab_data} indicating the identifier of the tested patient.}
+\item{patient_id}{The column in `lab_data` indicating the identifier of the tested patient.}
 
-\item{lab_datetime}{The column in \code{lab_data} with the date or datetime of the laboratory test.}
+\item{lab_datetime}{The column in `lab_data` with the date or datetime of the laboratory test.}
 
 \item{report}{A report is written in the console. Defaults to "TRUE".}
 }
 \value{
-A modified \code{lab_data} data frame with additional columns:
-\itemize{
-\item \code{flag}: specifies the flag detected in the result records that violated one or more of the validation checks
-}
+A modified `lab_data` data frame with additional columns:
+  * `flag`: specifies the flag detected in the result records that violated one or more of the validation checks
 }
 \description{
 This function is designed to validate quantitative laboratory result values.
-It modifies the provided \code{lab_data} dataframe in-place, adding one new column.
+It modifies the provided `lab_data` dataframe in-place, adding one new column.
 }
 \details{
 The function employs the following validation methodology:
-\enumerate{
-\item Reportable limits check: Identifies implausible values outside reportable limits.
-\item Logic rules check: Identifies values that contradict some predefined logic rules.
-\item Delta limits check: Flags values with excessive change from prior results for the same test and patient.
-}
+  1. Reportable limits check: Identifies implausible values outside reportable limits.
+  2. Logic rules check: Identifies values that contradict some predefined logic rules.
+  3. Delta limits check: Flags values with excessive change from prior results for the same test and patient.
 
 Internal Datasets:
 The function uses two internal datasets included with the package:
-\enumerate{
-\item \code{reportable_interval}: Contains information on reportable intervals.
-\item \code{logic_rules}: Contains logic rules for validation.
-}
+  1. `reportable_interval`: Contains information on reportable intervals.
+  2. `logic_rules`: Contains logic rules for validation.
 }
 \note{
 This function is a component of a broader laboratory data cleaning pipeline and should be evaluated accordingly.
 The package's framework includes functions for cleaning result values, validating quantitative results,
 standardizing unit formats, performing unit conversion, and assisting in LOINC code mapping.
 
-Concerning performance, the function's speed might be influenced by the size of \code{lab_data}. Consider:
-\itemize{
-\item Limiting the number of records processed.
-\item Optimize the function for larger datasets.
-\item Implement pre-processing steps to divide the dataset chronologically.
-}
+Concerning performance, the function's speed might be influenced by the size of `lab_data`. Consider:
+  * Limiting the number of records processed.
+  * Optimize the function for larger datasets.
+  * Implement pre-processing steps to divide the dataset chronologically.
 }
 \seealso{
 Function 1 for result value cleaning,
 }
 \author{
-Ahmed Zayed \href{mailto:ahmed.zayed@kuleuvne.be}{ahmed.zayed@kuleuvne.be}, Arne Janssens \href{mailto:arne.janssens@kuleuven.be}{arne.janssens@kuleuven.be}
+Ahmed Zayed <ahmed.zayed@kuleuvne.be>, Arne Janssens <arne.janssens@kuleuven.be>
 }

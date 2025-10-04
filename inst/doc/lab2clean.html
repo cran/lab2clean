@@ -9,7 +9,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Ahmed Zayed, Arne Janseens, Pavlos Mamouris" />
+<meta name="author" content="Ahmed Zayed, Ilias Sarikakis, Arne Janssens, Pavlos Mamouris" />
 
 
 <title>Automatically Cleaning Laboratory Results in R using the ‘lab2clean’ package</title>
@@ -1480,11 +1480,17 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Automatically Cleaning Laboratory Results
 in R using the ‘lab2clean’ package</h1>
-<h4 class="author">Ahmed Zayed, Arne Janseens, Pavlos Mamouris</h4>
+<h4 class="author">Ahmed Zayed, Ilias Sarikakis, Arne Janssens, Pavlos
+Mamouris</h4>
 
 </div>
 
 
+<script>
+$(document).ready(function(){
+    $('[data-toggle="popover"]').popover(); 
+});
+</script>
 <style>
 body {
 text-align: justify;
@@ -1503,19 +1509,26 @@ tailored for this need, we developed our algorithm
 <code>lab2clean</code> as an open-source R-package.
 <code>lab2clean</code> package is set to automate and standardize the
 intricate process of cleaning clinical laboratory results. With a keen
-focus on improving the data quality of laboratory result values, while
-assuming compliance with established standards like LOINC and UCUM for
-test identifiers and units, our goal is to equip researchers with a
-straightforward, plug-and-play tool, making it smoother for them to
-unlock the true potential of clinical laboratory data in clinical
-research and clinical machine learning (ML) model development. Version
-1.0 of the algorithm is described in detail in Zayed et al. 2024 [<a href="https://doi.org/10.1186/s12911-024-02652-7" class="uri">https://doi.org/10.1186/s12911-024-02652-7</a>]</p>
-<p>The <code>lab2clean</code> package contains two key functions:
-<code>clean_lab_result()</code> and <code>validate_lab_result()</code>.
-The <code>clean_lab_result()</code> function cleans and standardizes the
+focus on improving the data quality of laboratory result values and
+units, our goal is to equip researchers with a straightforward,
+plug-and-play tool, making it smoother for them to unlock the true
+potential of clinical laboratory data in clinical research and clinical
+machine learning (ML) model development.</p>
+<p>The <code>lab2clean</code> package contains four key functions: Two
+functions to clean &amp; validate result values (Version 1.0) are
+described in detail in Zayed et al. (2024) [<a href="https://doi.org/10.1186/s12911-024-02652-7" class="uri">https://doi.org/10.1186/s12911-024-02652-7</a>]. The
+<code>clean_lab_result()</code> function cleans and standardizes the
 laboratory results, and the <code>validate_lab_result()</code> function
-performs validation to ensure the plausibility of these results. This
-vignette aims to explain the theoretical background, usage, and
+performs validation to ensure the plausibility of these results. The
+other two functions to standardize &amp; harmonize result units (added
+in Version 2.0) are described in detail in Zayed et al. (2025) [<a href="https://doi.org/10.1016/j.ijmedinf.2025.106131" class="uri">https://doi.org/10.1016/j.ijmedinf.2025.106131</a>]. The
+<code>standardize_lab_unit()</code> function cleans and standardize
+formats of laboratory units of measurement according to the Unified Code
+for Units of Measure (UCUM), and the <code>harmonize_lab_unit()</code>
+function harmonizes the units found in a laboratory data set to
+reference units following either SI or Conventional units, converting
+the numeric result values.</p>
+<p>This vignette aims to explain the theoretical background, usage, and
 customization of these functions.</p>
 <p><br></p>
 </div>
@@ -1592,51 +1605,61 @@ head(Function_1_dummy,6)</code></pre>
 explore the <code>report</code> and <code>n_records</code>
 arguments:</p>
 <pre class="r"><code>cleaned_results &lt;- clean_lab_result(Function_1_dummy, raw_result = &quot;raw_result&quot;, report = TRUE, n_records = &quot;frequency&quot;)</code></pre>
-<p>#&gt; <strong>Step 1: Handling records with extra variables stored
-with the result value removing interpretative flags, or
-units</span></strong><br>#&gt;
-==========================================================================================<br>#&gt;
-<span style="color:red;">⚠</span></strong> <span style="color:blue;">8</span></strong> distinct results (<span style="color:blue;">8.742%</span></strong> of the total result records)
-with interpretative flags (e.g. positive, negative, H, L) -&gt; flags
-removed with cleaning comment added <span style="color:blue;">flag</span></strong>).<br>#&gt; <span style="color:red;">⚠</span></strong> <span style="color:blue;">17</span></strong> distinct results (<span style="color:blue;">20.043%</span></strong> of the total result records)
-with unit (%, exponents, or other units) -&gt; units removed with
-cleaning comment added <span style="color:blue;">Percent, Exponent, or
-Units</span></strong>).<br>#&gt; <strong>Step 2: classify and
-standardize different scale types - part 1</span></strong><br>#&gt;
-==========================================================================================<br>#&gt;
-<span style="color:green;">✔</span></strong> <span style="color:blue;">3</span></strong> distinct results (<span style="color:blue;">5.373%</span></strong> of the total result records)
-of scale type <span style="color:blue;">‘Ord.2’</span></strong>, which
-describes grades of positivity (e.g. 2+, 3+).<br>#&gt; <span style="color:green;">✔</span></strong> <span style="color:blue;">7</span></strong> distinct results (<span style="color:blue;">7.966%</span></strong> of the total result records)
-of scale type <span style="color:blue;">‘Qn.2’</span></strong>, which
-describes inequality results (e.g. &gt;120, &lt;1).<br>#&gt; <span style="color:green;">✔</span></strong> <span style="color:blue;">4</span></strong> distinct results (<span style="color:blue;">6.233%</span></strong> of the total result records)
-of scale type <span style="color:blue;">‘Qn.3’</span></strong>, which
-describes numeric range results (e.g. 2-4).<br>#&gt; <span style="color:green;">✔</span></strong> <span style="color:blue;">4</span></strong> distinct results (<span style="color:blue;">3.092%</span></strong> of the total result records)
-of scale type <span style="color:blue;">‘Qn.4’</span></strong>, which
-describes titer results (e.g. 1/40).<br>#&gt; <span style="color:green;">✔</span></strong> <span style="color:blue;">55</span></strong> distinct results (<span style="color:blue;">61.335%</span></strong> of the total result records)
-of scale type <span style="color:blue;">‘Qn.1’</span></strong>, which
-describes numeric results (e.g. 56, 5.6, 5600).<br>#&gt; <span style="color:red;">⚠</span></strong> <span style="color:blue;">4</span></strong> distinct results (<span style="color:blue;">4.853%</span></strong> of the total result records)
-with numeric result values that cannot be determined without predefined
-locale setting (US or DE) -&gt; cleaning comment added <span style="color:blue;">locale_check</span></strong>).<br>#&gt; <span style="color:green;">✔</span></strong> <span style="color:blue;">4</span></strong> distinct results (<span style="color:blue;">4.888%</span></strong> of the total result records)
-of scale type <span style="color:blue;">‘Ord.1’</span></strong>, which
-describes positive or negative results (Neg, Pos, or Normal).<br>#&gt;
-<span style="color:green;">✔</span></strong> <span style="color:blue;">1</span></strong> distinct results (<span style="color:blue;">1.019%</span></strong> of the total result records)
-of scale type <span style="color:blue;">‘Nom.1’</span></strong>, which
-describes blood groups (e.g. A+, AB).<br>#&gt; <strong>Last Step:
-Classifying non-standard text records</span></strong><br>#&gt;
-==========================================================================================<br>#&gt;
-<span style="color:red;">⚠</span></strong> <span style="color:blue;">0</span></strong> distinct results (<span style="color:blue;">0%</span></strong> of the total result records) with
+<p>#&gt; <span style="font-weight: bold;">Step 1: Handling records with
+extra variables stored with the result value removing interpretative
+flags, or units</span><br> #&gt;
+==========================================================================================<br>
+#&gt; <span style="color: #BB0000;">⚠</span> <span style="color: #0000BB;">8</span> distinct results (<span style="color: #0000BB;">8.742%</span> of the total result records) with
+interpretative flags (e.g. positive, negative, H, L) -&gt; flags removed
+with cleaning comment added <span style="color: #0000BB;">flag</span>).<br> #&gt; <span style="color: #BB0000;">⚠</span> <span style="color: #0000BB;">17</span>
+distinct results (<span style="color: #0000BB;">20.043%</span> of the
+total result records) with unit (%, exponents, or other units) -&gt;
+units removed with cleaning comment added <span style="color: #0000BB;">Percent, Exponent, or Units</span>).<br> #&gt;
+<span style="font-weight: bold;">Step 2: classify and standardize
+different scale types - part 1</span><br> #&gt;
+==========================================================================================<br>
+#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">3</span> distinct results (<span style="color: #0000BB;">5.373%</span> of the total result records) of
+scale type <span style="color: #0000BB;">‘Ord.2’</span>, which describes
+grades of positivity (e.g. 2+, 3+).<br> #&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">7</span>
+distinct results (<span style="color: #0000BB;">7.966%</span> of the
+total result records) of scale type <span style="color: #0000BB;">‘Qn.2’</span>, which describes inequality
+results (e.g. &gt;120, &lt;1).<br> #&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">4</span>
+distinct results (<span style="color: #0000BB;">6.233%</span> of the
+total result records) of scale type <span style="color: #0000BB;">‘Qn.3’</span>, which describes numeric range
+results (e.g. 2-4).<br> #&gt; <span style="color: #00BB00;">✔</span>
+<span style="color: #0000BB;">4</span> distinct results (<span style="color: #0000BB;">3.092%</span> of the total result records) of
+scale type <span style="color: #0000BB;">‘Qn.4’</span>, which describes
+titer results (e.g. 1/40).<br> #&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">55</span>
+distinct results (<span style="color: #0000BB;">61.335%</span> of the
+total result records) of scale type <span style="color: #0000BB;">‘Qn.1’</span>, which describes numeric results
+(e.g. 56, 5.6, 5600).<br> #&gt; <span style="color: #BB0000;">⚠</span>
+<span style="color: #0000BB;">4</span> distinct results (<span style="color: #0000BB;">4.853%</span> of the total result records) with
+numeric result values that cannot be determined without predefined
+locale setting (US or DE) -&gt; cleaning comment added <span style="color: #0000BB;">locale_check</span>).<br> #&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">4</span>
+distinct results (<span style="color: #0000BB;">4.888%</span> of the
+total result records) of scale type <span style="color: #0000BB;">‘Ord.1’</span>, which describes positive or
+negative results (Neg, Pos, or Normal).<br> #&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">1</span>
+distinct results (<span style="color: #0000BB;">1.019%</span> of the
+total result records) of scale type <span style="color: #0000BB;">‘Nom.1’</span>, which describes blood groups
+(e.g. A+, AB).<br> #&gt; <span style="font-weight: bold;">Last Step:
+Classifying non-standard text records</span><br> #&gt;
+==========================================================================================<br>
+#&gt; <span style="color: #BB0000;">⚠</span> <span style="color: #0000BB;">0</span> distinct results (<span style="color: #0000BB;">0%</span> of the total result records) with
 multiple result values (e.g. postive X &amp; negative Y) -&gt; cleaning
-comment added (<span style="color:blue;">multiple_results</span></strong>).<br>#&gt; <span style="color:red;">⚠</span></strong> <span style="color:blue;">0</span></strong> distinct results (<span style="color:blue;">0%</span></strong> of the total result records) with
-words about sample or specimen (e.g. sample not found) -&gt; cleaning
-comment added (<span style="color:blue;">test_not_performed</span></strong>).<br>#&gt; <span style="color:red;">⚠</span></strong> <span style="color:blue;">8</span></strong> distinct results (<span style="color:blue;">8.777%</span></strong> of the total result records)
-with meaningless inputs (e.g. = , .) -&gt; cleaning comment added (<span style="color:blue;">No_result</span></strong>).<br>#&gt; <span style="color:red;">⚠</span></strong> <span style="color:blue;">1</span></strong> distinct results (<span style="color:blue;">1.317%</span></strong> of the total result records)
-that could not be standardized or classified -&gt; cleaning comment
-added (<span style="color:blue;">not_standardized</span></strong>).<br>#&gt;
-==========================================================================================<br>#&gt;
-<span style="color:green;">✔</span></strong> <span style="color:blue;">78</span></strong> distinct results (<span style="color:blue;">89.906%</span></strong> of the total result records)
-were cleaned, classified, and standardized.<br>#&gt; ⏰ <strong>Time
-taken is <span style="color:blue;">0.012 minutes.<br>#&gt;
-</span></strong><br></p>
+comment added (<span style="color: #0000BB;">multiple_results</span>).<br> #&gt; <span style="color: #BB0000;">⚠</span> <span style="color: #0000BB;">0</span>
+distinct results (<span style="color: #0000BB;">0%</span> of the total
+result records) with words about sample or specimen (e.g. sample not
+found) -&gt; cleaning comment added (<span style="color: #0000BB;">test_not_performed</span>).<br> #&gt; <span style="color: #BB0000;">⚠</span> <span style="color: #0000BB;">8</span>
+distinct results (<span style="color: #0000BB;">8.777%</span> of the
+total result records) with meaningless inputs (e.g. = , .) -&gt;
+cleaning comment added (<span style="color: #0000BB;">No_result</span>).<br> #&gt; <span style="color: #BB0000;">⚠</span> <span style="color: #0000BB;">1</span>
+distinct results (<span style="color: #0000BB;">1.317%</span> of the
+total result records) that could not be standardized or classified -&gt;
+cleaning comment added (<span style="color: #0000BB;">not_standardized</span>).<br> #&gt;
+==========================================================================================<br>
+#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">78</span> distinct results (<span style="color: #0000BB;">89.906%</span> of the total result records) were
+cleaned, classified, and standardized.<br> #&gt; ⏰ <span style="font-weight: bold;">Time taken is </span><span style="color: #0000BB; font-weight: bold;">0 min, 0 sec<br> #&gt;
+</span><br></p>
 <p>The <code>report</code> provides a detailed report on how the whole
 process of cleaning the data is done, and offers some descriptive
 insights of the process. The <code>n_records</code> argument adds
@@ -1644,8 +1667,9 @@ percentages to each of the aforementioned steps to enhance the
 reporting. For simplicity, we will use <code>report = FALSE</code> in
 the rest of this tutorial:</p>
 <pre class="r"><code>cleaned_results &lt;- clean_lab_result(Function_1_dummy, raw_result = &quot;raw_result&quot;, report = FALSE)</code></pre>
-<p>#&gt; <span style="color:green;">✔</span></strong> <span style="color:blue;">78</span></strong> result records were cleaned,
-classified, and standardized.<br>#&gt; ⏰ <strong>Time taken is <span style="color:blue;">0.01 minutes.<br>#&gt; </span></strong><br></p>
+<p>#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">78</span> result records were cleaned,
+classified, and standardized.<br> #&gt; ⏰ <span style="font-weight: bold;">Time taken is </span><span style="color: #0000BB; font-weight: bold;">0 min, 0 sec<br> #&gt;
+</span><br></p>
 <pre class="r"><code>cleaned_results</code></pre>
 <table>
 <colgroup>
@@ -2310,8 +2334,9 @@ specified to identify this result value. If we specified the locale as
 follows:</p>
 <pre class="r"><code>Function_1_dummy_subset &lt;- Function_1_dummy[c(71,72),, drop = FALSE]
 cleaned_results &lt;- clean_lab_result(Function_1_dummy_subset, raw_result = &quot;raw_result&quot;, report = FALSE, locale = &quot;US&quot;)</code></pre>
-<p>#&gt; <span style="color:green;">✔</span></strong> <span style="color:blue;">2</span></strong> result records were cleaned,
-classified, and standardized.<br>#&gt; ⏰ <strong>Time taken is <span style="color:blue;">0.007 minutes.<br>#&gt; </span></strong><br></p>
+<p>#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">2</span> result records were cleaned,
+classified, and standardized.<br> #&gt; ⏰ <span style="font-weight: bold;">Time taken is </span><span style="color: #0000BB; font-weight: bold;">0 min, 0 sec<br> #&gt;
+</span><br></p>
 <pre class="r"><code>cleaned_results</code></pre>
 <table style="width:100%;">
 <colgroup>
@@ -2352,8 +2377,9 @@ classified, and standardized.<br>#&gt; ⏰ <strong>Time taken is <span style="co
 </tbody>
 </table>
 <pre class="r"><code>cleaned_results &lt;- clean_lab_result(Function_1_dummy_subset, raw_result = &quot;raw_result&quot;, report = FALSE, locale = &quot;DE&quot;)</code></pre>
-<p>#&gt; <span style="color:green;">✔</span></strong> <span style="color:blue;">2</span></strong> result records were cleaned,
-classified, and standardized.<br>#&gt; ⏰ <strong>Time taken is <span style="color:blue;">0.008 minutes.<br>#&gt; </span></strong><br></p>
+<p>#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">2</span> result records were cleaned,
+classified, and standardized.<br> #&gt; ⏰ <span style="font-weight: bold;">Time taken is </span><span style="color: #0000BB; font-weight: bold;">0 min, 0 sec<br> #&gt;
+</span><br></p>
 <pre class="r"><code>cleaned_results</code></pre>
 <table style="width:100%;">
 <colgroup>
@@ -2661,7 +2687,7 @@ no flag is created because we can assume it was a negative value.</p>
 </div>
 <div id="function-2-validate-results" class="section level2">
 <h2>4. Function 2: Validate results</h2>
-<p>The <code>validate_lab_result()</code> has six arguments:</p>
+<p>The <code>validate_lab_result()</code> has seven arguments:</p>
 <ul>
 <li><p><code>lab_data</code> : A data frame containing laboratory
 data</p></li>
@@ -2747,32 +2773,32 @@ functionality:</p>
                                         loinc_code=&quot;loinc_code&quot;,
                                         patient_id = &quot;patient_id&quot; , 
                                         lab_datetime=&quot;lab_datetime1&quot;)</code></pre>
-<p>#&gt; <strong>Preprocessing Step for Duplicate
-Records</span></strong><br>#&gt;
-===============================================================================================<br>#&gt;
-<span style="color:red;">⚠</span></strong> <span style="color:blue;">166</span></strong> duplicate records were
-flagged.<br>#&gt; These are multiple records of the same test for the
-same patient at the same result timestamp.<br>#&gt; <strong>Check 1:
-Reportable Limits Check</span></strong><br>#&gt;
-===============================================================================================<br>#&gt;
-<span style="color:red;">⚠</span></strong> <span style="color:blue;">5</span></strong> extremely low result records were
-flagged (low_unreportable).<br>#&gt; <span style="color:red;">⚠</span></strong> <span style="color:blue;">2</span></strong> extremely high records were
-flagged (high_unreportable).<br>#&gt; <strong>Check 2: Logic Consistency
-Checks</span></strong><br>#&gt;
-===============================================================================================<br>#&gt;
-<span style="color:red;">⚠</span></strong> <span style="color:blue;">7</span></strong> result records were flagged for
-violating relational logic rules (logic_flag).<br>#&gt; <strong>Check 3:
-Delta Change Limits Checks</span></strong><br>#&gt;
-===============================================================================================<br>#&gt;
-<span style="color:red;">⚠</span></strong> <span style="color:blue;">55</span></strong> records were flagged for having
+<p>#&gt; <span style="font-weight: bold;">Preprocessing Step for
+Duplicate Records</span><br> #&gt;
+===============================================================================================<br>
+#&gt; <span style="color: #BB0000;">⚠</span> <span style="color: #0000BB;">166</span> duplicate records were flagged.<br>
+#&gt; These are multiple records of the same test for the same patient
+at the same result timestamp.<br> #&gt; <span style="font-weight: bold;">Check 1: Reportable Limits Check</span><br>
+#&gt;
+===============================================================================================<br>
+#&gt; <span style="color: #BB0000;">⚠</span> <span style="color: #0000BB;">5</span> extremely low result records were
+flagged (low_unreportable).<br> #&gt; <span style="color: #BB0000;">⚠</span> <span style="color: #0000BB;">2</span>
+extremely high records were flagged (high_unreportable).<br> #&gt; <span style="font-weight: bold;">Check 2: Logic Consistency Checks</span><br>
+#&gt;
+===============================================================================================<br>
+#&gt; <span style="color: #BB0000;">⚠</span> <span style="color: #0000BB;">7</span> result records were flagged for
+violating relational logic rules (logic_flag).<br> #&gt; <span style="font-weight: bold;">Check 3: Delta Change Limits
+Checks</span><br> #&gt;
+===============================================================================================<br>
+#&gt; <span style="color: #BB0000;">⚠</span> <span style="color: #0000BB;">55</span> records were flagged for having
 extreme change values from previous results within 7 days
-(delta_flag_7d).<br>#&gt; <span style="color:red;">⚠</span></strong>
-<span style="color:blue;">15</span></strong> records were flagged for
-having extreme change values from previous results within 8-90 days
-(delta_flag_8_90d).<br>#&gt;
-===============================================================================================<br>#&gt;
-<span style="color:green;">✔</span></strong> <span style="color:blue;">99.712%</span></strong> of the lab data records were
-validated with no flag detected.<br>#&gt; ⏰ <strong>Time taken is <span style="color:blue;">1.596 minutes.<br>#&gt; </span></strong><br></p>
+(delta_flag_7d).<br> #&gt; <span style="color: #BB0000;">⚠</span> <span style="color: #0000BB;">15</span> records were flagged for having
+extreme change values from previous results within 8-90 days
+(delta_flag_8_90d).<br> #&gt;
+===============================================================================================<br>
+#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">99.712%</span> of the lab data records were
+validated with no flag detected.<br> #&gt; ⏰ <span style="font-weight: bold;">Time taken is </span><span style="color: #0000BB; font-weight: bold;">0 min, 1.8 sec<br> #&gt;
+</span><br></p>
 <p>The <code>validate_lab_result()</code> function generates a
 <code>flag</code> column, with different checks:</p>
 <pre class="r"><code>head(validate_results, 6)</code></pre>
@@ -2847,7 +2873,7 @@ validated with no flag detected.<br>#&gt; ⏰ <strong>Time taken is <span style=
 </tbody>
 </table>
 <pre class="r"><code>levels(factor(validate_results$flag))</code></pre>
-<p>#&gt; [1] “delta_flag_7d” “delta_flag_8_90d” “duplicate” <br>#&gt;
+<p>#&gt; [1] “delta_flag_7d” “delta_flag_8_90d” “duplicate” <br> #&gt;
 [4] “high_unreportable” “logic_flag” “low_unreportable”<br></p>
 <p>We can now subset specific patients to explain the flags:</p>
 <pre class="r"><code>subset_patients &lt;- validate_results[validate_results$patient_id %in% c(&quot;14236258&quot;, &quot;10000003&quot;, &quot;14499007&quot;), ]
@@ -3385,17 +3411,779 @@ have 230 &gt; 100+130, i.e. 230&gt;230, which is clearly false, and thus
 a logic flag is created.</li>
 </ul>
 </div>
+<div id="function-3-clean-and-standardize-units-of-measurement" class="section level2">
+<h2>4. Function 3: Clean and Standardize units of measurement:</h2>
+<p>The <code>standardize_lab_unit()</code> has four arguments:</p>
+<ul>
+<li><p><code>lab_data</code> : A dataset containing laboratory
+data</p></li>
+<li><p><code>raw_unit</code> : The column in <code>lab_data</code> that
+contains raw units to be cleaned.</p></li>
+<li><p><code>report</code> : A report is written in the console.
+Defaults to “TRUE”.</p></li>
+<li><p><code>n_records</code> : In case you are loading a grouped list
+of distinct results, then you can assign the n_records to the column
+that contains the frequency of each distinct result. Defaults to
+NA</p></li>
+</ul>
+<p>Let us check how our package standardizes the units of measurement
+using the <code>standardize_lab_unit()</code> function. Let us consider
+the <code>Function_3_dummy</code> data that contains 32 rows and inspect
+its first 6 rows;</p>
+<pre class="r"><code>data(&quot;Function_3_dummy&quot;, package = &quot;lab2clean&quot;)
+head(Function_3_dummy, 6)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">unit_raw</th>
+<th align="right">n_records</th>
+<th align="left">note</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">mg / dl</td>
+<td align="right">42</td>
+<td align="left">spaces+case</td>
+</tr>
+<tr class="even">
+<td align="left">Mg/Dl</td>
+<td align="right">15</td>
+<td align="left">case</td>
+</tr>
+<tr class="odd">
+<td align="left">mcg/L</td>
+<td align="right">30</td>
+<td align="left">mcg alias</td>
+</tr>
+<tr class="even">
+<td align="left">µg/L</td>
+<td align="right">27</td>
+<td align="left">micro sign U+00B5</td>
+</tr>
+<tr class="odd">
+<td align="left">&lt;U+00B5&gt;g/L</td>
+<td align="right">10</td>
+<td align="left">textual unicode</td>
+</tr>
+<tr class="even">
+<td align="left">μg/L</td>
+<td align="right">11</td>
+<td align="left">greek mu U+03BC</td>
+</tr>
+</tbody>
+</table>
+<p>This dataset -for demonstration purposes- contains three columns:
+<code>unit_raw</code>, <code>n_records</code>, and <code>note</code>.
+The <code>unit_raw</code> column holds raw laboratory units as reported
+in the database, and <code>frequency</code> indicates how often each
+unit appeared, while the <code>note</code> details the different cases
+handled by our function.</p>
+<pre class="r"><code>standardized_units &lt;- standardize_lab_unit(Function_3_dummy, raw_unit = &quot;unit_raw&quot;, n_records = &quot;n_records&quot;)</code></pre>
+<p>#&gt; <span style="font-weight: bold;">Step 1: Preprocessing unit
+srings</span><br> #&gt;
+==========================================================================================<br>
+#&gt; <span style="color: #BB0000;">⚠</span> <span style="color: #0000BB;">1</span> distinct unit strings (<span style="color: #0000BB;">5.155%</span> of the total result records) with
+no units after pre-processing -&gt; cleaning comment added <span style="color: #0000BB;">No unit</span>).<br> #&gt; <span style="font-weight: bold;">Step 2: Lookup in commom units
+database</span><br> #&gt;
+==========================================================================================<br>
+#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">19</span> distinct units (<span style="color: #0000BB;">61.856%</span> of the total result records) were
+matched to ucum codes.<br> #&gt; <span style="font-weight: bold;">Step
+3: Check Syntax Integrity of units with no UCUM match</span><br> #&gt;
+==========================================================================================<br>
+#&gt; <span style="color: #BB0000;">⚠</span> <span style="color: #0000BB;">0</span> distinct unit strings (<span style="color: #0000BB;">0%</span> of the total result records) with not
+valid syntax -&gt; detailed cleaning comments added <span style="color: #0000BB;">not_valid - reason</span>).<br> #&gt; <span style="font-weight: bold;">Step 4: Parsing of units which passesd checks
+(tokenize and classify)</span><br> #&gt;
+==========================================================================================<br>
+#&gt; <span style="color: #BB0000;">⚠</span> <span style="color: #0000BB;">2</span> distinct unit strings (<span style="color: #0000BB;">1.804%</span> of the total result records) with
+unrecognisable text -&gt; cleaning comment added <span style="color: #0000BB;">not_valid - unrecognisable text</span>).<br>
+#&gt; <span style="font-weight: bold;">Step 5: Restructuring of parsed
+units (apply correction rules &amp; final validation)</span><br> #&gt;
+==========================================================================================<br>
+#&gt; <span style="color: #BB0000;">⚠</span> <span style="color: #0000BB;">0</span> distinct unit strings (<span style="color: #0000BB;">0%</span> of the total result records) with
+space characters (not corrected) -&gt; cleaning comment added <span style="color: #0000BB;">not_valid - space characters</span>).<br> #&gt;
+<span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">10</span> distinct units (<span style="color: #0000BB;">31.186%</span> of the total result records) were
+transformed and validated to ucum codes.<br> #&gt;
+==========================================================================================<br>
+#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">29</span> distinct results (<span style="color: #0000BB;">93.041%</span> of the total result records) were
+standardized to UCUM.<br> #&gt; ⏰ <span style="font-weight: bold;">Time
+taken is </span><span style="color: #0000BB; font-weight: bold;">0 min,
+0.1 sec<br> #&gt; </span><br></p>
+<p>This function creates two new columns:</p>
+<pre class="r"><code>head(standardized_units, 10)</code></pre>
+<table>
+<colgroup>
+<col width="4%" />
+<col width="14%" />
+<col width="14%" />
+<col width="28%" />
+<col width="25%" />
+<col width="14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="left">unit_raw</th>
+<th align="right">n_records</th>
+<th align="left">note</th>
+<th align="left">cleaning_comments</th>
+<th align="left">ucum_code</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">1</td>
+<td align="left"></td>
+<td align="right">20</td>
+<td align="left">empty</td>
+<td align="left">No unit</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">2</td>
+<td align="left">%</td>
+<td align="right">22</td>
+<td align="left">percent only</td>
+<td align="left">NA</td>
+<td align="left">%</td>
+</tr>
+<tr class="odd">
+<td align="left">4</td>
+<td align="left">10^3/uL</td>
+<td align="right">7</td>
+<td align="left">caret exponent</td>
+<td align="left">NA</td>
+<td align="left">10*3/uL</td>
+</tr>
+<tr class="even">
+<td align="left">5</td>
+<td align="left">10exp3/uL</td>
+<td align="right">8</td>
+<td align="left">10exp exponent</td>
+<td align="left">NA</td>
+<td align="left">10*3/uL</td>
+</tr>
+<tr class="odd">
+<td align="left">6</td>
+<td align="left">10E3/uL</td>
+<td align="right">9</td>
+<td align="left">10E exponent</td>
+<td align="left">NA</td>
+<td align="left">10*3/uL</td>
+</tr>
+<tr class="even">
+<td align="left">7</td>
+<td align="left">10*3/ul</td>
+<td align="right">16</td>
+<td align="left">lowercase uL + star</td>
+<td align="left">NA</td>
+<td align="left">10*3/uL</td>
+</tr>
+<tr class="odd">
+<td align="left">9</td>
+<td align="left">U.I./mL</td>
+<td align="right">8</td>
+<td align="left">U.I. form</td>
+<td align="left">NA</td>
+<td align="left">[IU]/mL</td>
+</tr>
+<tr class="even">
+<td align="left">10</td>
+<td align="left">I.U./mL</td>
+<td align="right">8</td>
+<td align="left">I.U. form</td>
+<td align="left">NA</td>
+<td align="left">[IU]/mL</td>
+</tr>
+<tr class="odd">
+<td align="left">14</td>
+<td align="left">IU/L</td>
+<td align="right">18</td>
+<td align="left">plain IU</td>
+<td align="left">NA</td>
+<td align="left">[IU]/L</td>
+</tr>
+<tr class="even">
+<td align="left">16</td>
+<td align="left">meq/l</td>
+<td align="right">13</td>
+<td align="left">meq alias</td>
+<td align="left">NA</td>
+<td align="left">meq/L</td>
+</tr>
+</tbody>
+</table>
+<p>1- <code>ucum_code</code>: Cleaned and standardized units according
+to UCUM syntax.</p>
+<p>2- <code>cleaning_comments</code>: Comments about the cleaning
+process for each unit.</p>
+</div>
+<div id="function-4-harmonize-results-to-reference-units" class="section level2">
+<h2>5. Function 4: Harmonize results to reference units</h2>
+<p>The <code>harmonize_lab_unit()</code> has six arguments:</p>
+<ul>
+<li><p><code>lab_data</code> : A data frame containing laboratory
+data</p></li>
+<li><p><code>result_value</code> : The column in lab_data with
+quantitative result values for validation</p></li>
+<li><p><code>result_unit</code> : The column in lab_data with result
+units in a UCUM-valid format</p></li>
+<li><p><code>loinc_code</code> : The column in lab_data indicating the
+LOINC code of the laboratory test</p></li>
+<li><p><code>preferred_unit_system</code> : A string representing the
+preference of the user for the unit system used for standardization.
+Defaults to “SI”, the other option is “Conventional”.</p></li>
+<li><p><code>report</code> : A report is written in the console.
+Defaults to “TRUE”.</p></li>
+</ul>
+<p>Let us demonstrate the <code>harmonize_lab_unit()</code> function
+using <code>Function_4_dummy</code> and inspect the first six rows:</p>
+<pre class="r"><code>data(&quot;Function_4_dummy&quot;, package = &quot;lab2clean&quot;)
+head(Function_4_dummy,6)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">loinc_code</th>
+<th align="right">result_value</th>
+<th align="left">result_unit</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">26444-0</td>
+<td align="right">0.00</td>
+<td align="left">x1000/&lt;U+00B5&gt;L</td>
+</tr>
+<tr class="even">
+<td align="left">14334-7</td>
+<td align="right">0.90</td>
+<td align="left">meq/L</td>
+</tr>
+<tr class="odd">
+<td align="left">785-6</td>
+<td align="right">30.00</td>
+<td align="left">pg</td>
+</tr>
+<tr class="even">
+<td align="left">2160-0</td>
+<td align="right">0.81</td>
+<td align="left">mg/dL</td>
+</tr>
+<tr class="odd">
+<td align="left">14679-5</td>
+<td align="right">13.10</td>
+<td align="left">&lt;U+00B5&gt;g/dL</td>
+</tr>
+<tr class="even">
+<td align="left">1963-8</td>
+<td align="right">27.00</td>
+<td align="left">mmol/l31 mOsm/l</td>
+</tr>
+</tbody>
+</table>
+<p>This dataset -for demonstration purposes- contains three columns:
+<code>loinc_code</code>, <code>result_value</code> and the
+<code>result_unit</code>.</p>
+<pre class="r"><code>harmonized_units &lt;- harmonize_lab_unit(Function_4_dummy,
+                                       loinc_code=&quot;loinc_code&quot;,
+                                       result_value=&quot;result_value&quot;,
+                                       result_unit=&quot;result_unit&quot;)</code></pre>
+<p>#&gt; <span style="font-weight: bold;">Step 1: Extracting unit
+parameters (dimension &amp; magnitude)</span><br> #&gt; <span style="font-weight: bold;">Step 2: Setting reference unit (LOINC-UCUM
+mapping)</span><br> #&gt; <span style="font-weight: bold;">Step 3: Check
+compatibility between reported unit and reference unit</span><br> #&gt;
+<span style="font-weight: bold;">Step 4: Executing regular
+conversion</span><br> #&gt; <span style="font-weight: bold;">Step 5:
+Executing mass&lt;&gt;molar conversion</span><br> #&gt; <span style="font-weight: bold;">Step 6: Checking LOINC codes</span><br> #&gt;
+===============================================================================================<br>
+#&gt; <span style="font-weight: bold;">Reporting Results:</span><br>
+#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">37.5%</span> of the lab data records were
+harmonized to reference units.<br> #&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">4</span>
+records had reported units same as reference units -&gt; result value
+not converted.<br> #&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">2</span> records had different reported units,
+but equivalent to reference units -&gt; result value not converted.<br>
+#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">5</span> records harmonized to reference units
+by regular conversions.<br> #&gt; <span style="color: #00BB00;">✔</span>
+<span style="color: #0000BB;">7</span> records harmonized to reference
+units by mass to mole conversions.<br> #&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">0</span>
+records harmonized to reference units by mole to mass conversions.<br>
+#&gt;
+===============================================================================================<br>
+#&gt; <span style="color: #BB0000;">⚠</span> <span style="color: #0000BB;">62.5%</span> of the lab data records could NOT
+harmonized to reference units.<br> #&gt; <span style="color: #BB0000;">⚠</span> <span style="color: #0000BB;">5</span>
+records not harmonized: no conversion between units of different
+dimensions.<br> #&gt; <span style="color: #BB0000;">⚠</span> <span style="color: #0000BB;">1</span> records not harmonized: no conversion
+between arbitrary units and non-arbitrary units.<br> #&gt; <span style="color: #BB0000;">⚠</span> <span style="color: #0000BB;">0</span>
+records not harmonized: no conversion between different arbitrary
+units.<br> #&gt; <span style="color: #BB0000;">⚠</span> <span style="color: #0000BB;">4</span> records not harmonized: no reference
+unit available for the given loinc codes.<br> #&gt; <span style="color: #BB0000;">⚠</span> <span style="color: #0000BB;">5</span>
+records not harmonized: no molecular weight available for the given
+analytes (loinc codes).<br> #&gt; <span style="color: #BB0000;">⚠</span>
+<span style="color: #0000BB;">15</span> records not harmonized: reported
+units are not ucum-valid.<br> #&gt; <span style="color: #BB0000;">⚠</span> <span style="color: #0000BB;">0</span>
+records not harmonized: reported units require special conversion.<br>
+#&gt; <span style="color: #BB0000;">⚠</span> <span style="color: #0000BB;">0</span> records not harmonized: result values
+are not numeric.<br> #&gt; <span style="color: #BB0000;">⚠</span> <span style="color: #0000BB;">0</span> records not harmonized: no reported
+units.<br> #&gt;
+===============================================================================================<br>
+#&gt; <span style="color: #BB0000;">⚠</span> <span style="color: #0000BB;">10</span> records with updated loinc code to
+match the harmonized unit system.<br> #&gt; ⏰ <span style="font-weight: bold;">Time taken is </span><span style="color: #0000BB; font-weight: bold;">0 min, 0.1 sec<br> #&gt;
+</span><br></p>
+<p>This function creates six different columns:</p>
+<pre class="r"><code>head(harmonized_units, 6)</code></pre>
+<table>
+<colgroup>
+<col width="6%" />
+<col width="7%" />
+<col width="7%" />
+<col width="8%" />
+<col width="5%" />
+<col width="9%" />
+<col width="9%" />
+<col width="10%" />
+<col width="34%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">loinc_code</th>
+<th align="right">result_value</th>
+<th align="left">result_unit</th>
+<th align="left">new_loinc_code</th>
+<th align="right">new_value</th>
+<th align="left">harmonized_unit</th>
+<th align="right">OMOP_concept_id</th>
+<th align="left">property_group_id</th>
+<th align="left">cleaning_comments</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">14334-7</td>
+<td align="right">0.90</td>
+<td align="left">meq/L</td>
+<td align="left">3719-2</td>
+<td align="right">0.90000</td>
+<td align="left">mmol/L</td>
+<td align="right">8753</td>
+<td align="left">NA</td>
+<td align="left">harmonized: different_unit_same_value,
+loinc_unit_mismatch</td>
+</tr>
+<tr class="even">
+<td align="left">785-6</td>
+<td align="right">29.00</td>
+<td align="left">pg</td>
+<td align="left">785-6</td>
+<td align="right">29.00000</td>
+<td align="left">pg</td>
+<td align="right">8564</td>
+<td align="left">NA</td>
+<td align="left">harmonized: source = reference unit</td>
+</tr>
+<tr class="odd">
+<td align="left">785-6</td>
+<td align="right">30.00</td>
+<td align="left">pg</td>
+<td align="left">785-6</td>
+<td align="right">30.00000</td>
+<td align="left">pg</td>
+<td align="right">8564</td>
+<td align="left">NA</td>
+<td align="left">harmonized: source = reference unit</td>
+</tr>
+<tr class="even">
+<td align="left">2160-0</td>
+<td align="right">0.70</td>
+<td align="left">mg/dL</td>
+<td align="left">14682-9</td>
+<td align="right">61.88123</td>
+<td align="left">umol/L</td>
+<td align="right">8749</td>
+<td align="left">LG100-4/LG2923-3</td>
+<td align="left">harmonized: mass_to_mole_conversion</td>
+</tr>
+<tr class="odd">
+<td align="left">2160-0</td>
+<td align="right">0.82</td>
+<td align="left">mg/dL</td>
+<td align="left">14682-9</td>
+<td align="right">72.48944</td>
+<td align="left">umol/L</td>
+<td align="right">8749</td>
+<td align="left">LG100-4/LG2923-3</td>
+<td align="left">harmonized: mass_to_mole_conversion</td>
+</tr>
+<tr class="even">
+<td align="left">2160-0</td>
+<td align="right">0.81</td>
+<td align="left">mg/dL</td>
+<td align="left">14682-9</td>
+<td align="right">71.60542</td>
+<td align="left">umol/L</td>
+<td align="right">8749</td>
+<td align="left">LG100-4/LG2923-3</td>
+<td align="left">harmonized: mass_to_mole_conversion</td>
+</tr>
+</tbody>
+</table>
+<p>1- <code>harmonized_unit</code>: Harmonized units according to the
+preferred unit system.</p>
+<p>2- <code>OMOP_concept_id</code>: The concept id of the harmonized
+unit, necessary for databases standardized to the OMOP Common Data
+Model.</p>
+<p>3- <code>new_value</code>: The result value after the conversion.</p>
+<p>4- <code>new_loinc_code</code>: The unit conversion can lead to a new
+loinc code than the reported one in two cases: * If the reported unit
+did not match the property of the given loinc code. For example “mmol/L”
+with a LOINC code of mass concentration property –&gt;
+“loinc_unitsystem_mismatch” is added in the cleaning comments. * If a
+mass&lt;&gt;molar conversion was executed.</p>
+<pre class="r"><code>harmonized_units[which(harmonized_units$loinc_code != harmonized_units$new_loinc_code), ]</code></pre>
+<table>
+<colgroup>
+<col width="1%" />
+<col width="6%" />
+<col width="7%" />
+<col width="6%" />
+<col width="8%" />
+<col width="5%" />
+<col width="9%" />
+<col width="9%" />
+<col width="10%" />
+<col width="34%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="left">loinc_code</th>
+<th align="right">result_value</th>
+<th align="left">result_unit</th>
+<th align="left">new_loinc_code</th>
+<th align="right">new_value</th>
+<th align="left">harmonized_unit</th>
+<th align="right">OMOP_concept_id</th>
+<th align="left">property_group_id</th>
+<th align="left">cleaning_comments</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">1</td>
+<td align="left">14334-7</td>
+<td align="right">0.900</td>
+<td align="left">meq/L</td>
+<td align="left">3719-2</td>
+<td align="right">0.90000</td>
+<td align="left">mmol/L</td>
+<td align="right">8753</td>
+<td align="left">NA</td>
+<td align="left">harmonized: different_unit_same_value,
+loinc_unit_mismatch</td>
+</tr>
+<tr class="even">
+<td align="left">4</td>
+<td align="left">2160-0</td>
+<td align="right">0.700</td>
+<td align="left">mg/dL</td>
+<td align="left">14682-9</td>
+<td align="right">61.88123</td>
+<td align="left">umol/L</td>
+<td align="right">8749</td>
+<td align="left">LG100-4/LG2923-3</td>
+<td align="left">harmonized: mass_to_mole_conversion</td>
+</tr>
+<tr class="odd">
+<td align="left">5</td>
+<td align="left">2160-0</td>
+<td align="right">0.820</td>
+<td align="left">mg/dL</td>
+<td align="left">14682-9</td>
+<td align="right">72.48944</td>
+<td align="left">umol/L</td>
+<td align="right">8749</td>
+<td align="left">LG100-4/LG2923-3</td>
+<td align="left">harmonized: mass_to_mole_conversion</td>
+</tr>
+<tr class="even">
+<td align="left">6</td>
+<td align="left">2160-0</td>
+<td align="right">0.810</td>
+<td align="left">mg/dL</td>
+<td align="left">14682-9</td>
+<td align="right">71.60542</td>
+<td align="left">umol/L</td>
+<td align="right">8749</td>
+<td align="left">LG100-4/LG2923-3</td>
+<td align="left">harmonized: mass_to_mole_conversion</td>
+</tr>
+<tr class="odd">
+<td align="left">9</td>
+<td align="left">2991-8</td>
+<td align="right">0.001</td>
+<td align="left">nmol/L</td>
+<td align="left">14914-6</td>
+<td align="right">1.00000</td>
+<td align="left">pmol/L</td>
+<td align="right">8729</td>
+<td align="left">LG100-4/LG2970-4</td>
+<td align="left">harmonized: regular_conversion,
+loinc_unit_mismatch</td>
+</tr>
+<tr class="even">
+<td align="left">10</td>
+<td align="left">2991-8</td>
+<td align="right">0.005</td>
+<td align="left">nmol/L</td>
+<td align="left">14914-6</td>
+<td align="right">5.00000</td>
+<td align="left">pmol/L</td>
+<td align="right">8729</td>
+<td align="left">LG100-4/LG2970-4</td>
+<td align="left">harmonized: regular_conversion,
+loinc_unit_mismatch</td>
+</tr>
+<tr class="odd">
+<td align="left">11</td>
+<td align="left">2991-8</td>
+<td align="right">0.003</td>
+<td align="left">nmol/L</td>
+<td align="left">14914-6</td>
+<td align="right">3.00000</td>
+<td align="left">pmol/L</td>
+<td align="right">8729</td>
+<td align="left">LG100-4/LG2970-4</td>
+<td align="left">harmonized: regular_conversion,
+loinc_unit_mismatch</td>
+</tr>
+<tr class="even">
+<td align="left">16</td>
+<td align="left">53049-3</td>
+<td align="right">88.000</td>
+<td align="left">mg/dL</td>
+<td align="left">40193-5</td>
+<td align="right">4.88455</td>
+<td align="left">mmol/L</td>
+<td align="right">8753</td>
+<td align="left">NA</td>
+<td align="left">harmonized: mass_to_mole_conversion</td>
+</tr>
+</tbody>
+</table>
+<p>5- <code>property_group_id</code>: the code of the LOINC group
+(parent group ID / Group ID).</p>
+<p>6- <code>cleaning_comments</code>: Comments about the harmonization
+and conversion process for each lab result with two main cases: *
+Success: harmonized with same value or with converted new value: - No
+conversion in case of similar or equivalent source and reference units.
+- Conversion with method clarified whether regular or mass&lt;&gt;molar
+conversion. * Failure: not harmonized with detailed reason for each
+failure case.</p>
+<pre class="r"><code>levels(factor(harmonized_units$cleaning_comments))</code></pre>
+<p>#&gt; [1] “harmonized: different_unit_same_value” <br> #&gt; [2]
+“harmonized: different_unit_same_value, loinc_unit_mismatch” <br> #&gt;
+[3] “harmonized: mass_to_mole_conversion” <br> #&gt; [4] “harmonized:
+mass_to_mole_conversion, loinc_unit_mismatch” <br> #&gt; [5]
+“harmonized: regular_conversion” <br> #&gt; [6] “harmonized:
+regular_conversion, loinc_unit_mismatch” <br> #&gt; [7] “harmonized:
+source = reference unit” <br> #&gt; [8] “not_harmonized: Non UCUM unit”
+<br> #&gt; [9] “not_harmonized: between arbitrary units and
+non-arbitrary units”<br> #&gt; [10] “not_harmonized: different
+dimensions” <br> #&gt; [11] “not_harmonized: different dimensions,
+loinc_unit_mismatch” <br> #&gt; [12] “not_harmonized: no molecular
+weight available” <br> #&gt; [13] “not_harmonized:
+no_reference_unit_available”<br></p>
+<p>In the <code>harmonize_lab_unit()</code> function, we have an
+argument named <code>preferred_unit_system</code>.</p>
+<ul>
+<li><code>preferred_unit_system</code>: According to the user
+preference, the reference units may change from SI units (usually molar
+concentration) to conventional units commonly used in practice (usually
+mass concentration) through mass&lt;&gt;molar conversions. For LOINC
+codes which don’t have mass&lt;&gt;molar equivalent, the conventional
+and SI units were considered the same. For some LOINC codes, the molar
+concentration is the one used conventionally. Examples of differences in
+using different <code>preferred_unit_system</code> is detailed as
+follows:</li>
+</ul>
+<pre class="r"><code>Function_4_dummy_subset &lt;- Function_4_dummy[c(27, 15, 38, 45),, drop = FALSE]
+harmonized_units &lt;- harmonize_lab_unit(Function_4_dummy_subset,
+                                       loinc_code=&quot;loinc_code&quot;,
+                                       result_value=&quot;result_value&quot;,
+                                       result_unit=&quot;result_unit&quot;,
+                                       report = FALSE,
+                                       preferred_unit_system = &quot;SI&quot;)</code></pre>
+<p>#&gt; ⏰ <span style="font-weight: bold;">Time taken is </span><span style="color: #0000BB; font-weight: bold;">0 min, 0.1 sec<br> #&gt;
+</span><br></p>
+<pre class="r"><code>harmonized_units</code></pre>
+<table>
+<colgroup>
+<col width="6%" />
+<col width="7%" />
+<col width="7%" />
+<col width="9%" />
+<col width="6%" />
+<col width="9%" />
+<col width="9%" />
+<col width="11%" />
+<col width="31%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">loinc_code</th>
+<th align="right">result_value</th>
+<th align="left">result_unit</th>
+<th align="left">new_loinc_code</th>
+<th align="right">new_value</th>
+<th align="left">harmonized_unit</th>
+<th align="right">OMOP_concept_id</th>
+<th align="left">property_group_id</th>
+<th align="left">cleaning_comments</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">2160-0</td>
+<td align="right">0.820</td>
+<td align="left">mg/dL</td>
+<td align="left">14682-9</td>
+<td align="right">72.48944</td>
+<td align="left">umol/L</td>
+<td align="right">8749</td>
+<td align="left">LG100-4/LG2923-3</td>
+<td align="left">harmonized: mass_to_mole_conversion</td>
+</tr>
+<tr class="even">
+<td align="left">2991-8</td>
+<td align="right">0.001</td>
+<td align="left">nmol/L</td>
+<td align="left">14914-6</td>
+<td align="right">1.00000</td>
+<td align="left">pmol/L</td>
+<td align="right">8729</td>
+<td align="left">LG100-4/LG2970-4</td>
+<td align="left">harmonized: regular_conversion,
+loinc_unit_mismatch</td>
+</tr>
+<tr class="odd">
+<td align="left">2951-2</td>
+<td align="right">142.000</td>
+<td align="left">mmol/L</td>
+<td align="left">2951-2</td>
+<td align="right">142.00000</td>
+<td align="left">mmol/L</td>
+<td align="right">8753</td>
+<td align="left">LG100-4/LG11363-5</td>
+<td align="left">harmonized: source = reference unit</td>
+</tr>
+<tr class="even">
+<td align="left">786-4</td>
+<td align="right">32.000</td>
+<td align="left">g/dL</td>
+<td align="left">786-4</td>
+<td align="right">320.00000</td>
+<td align="left">g/L</td>
+<td align="right">8636</td>
+<td align="left">NA</td>
+<td align="left">harmonized: regular_conversion</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>harmonized_units &lt;- harmonize_lab_unit(Function_4_dummy_subset,
+                                       loinc_code=&quot;loinc_code&quot;,
+                                       result_value=&quot;result_value&quot;,
+                                       result_unit=&quot;result_unit&quot;, 
+                                       report = FALSE,
+                                       preferred_unit_system = &quot;conventional&quot;)</code></pre>
+<p>#&gt; ⏰ <span style="font-weight: bold;">Time taken is </span><span style="color: #0000BB; font-weight: bold;">0 min, 0.1 sec<br> #&gt;
+</span><br></p>
+<pre class="r"><code>harmonized_units</code></pre>
+<table>
+<colgroup>
+<col width="6%" />
+<col width="7%" />
+<col width="7%" />
+<col width="8%" />
+<col width="7%" />
+<col width="9%" />
+<col width="9%" />
+<col width="10%" />
+<col width="33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">loinc_code</th>
+<th align="right">result_value</th>
+<th align="left">result_unit</th>
+<th align="left">new_loinc_code</th>
+<th align="right">new_value</th>
+<th align="left">harmonized_unit</th>
+<th align="right">OMOP_concept_id</th>
+<th align="left">property_group_id</th>
+<th align="left">cleaning_comments</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">2160-0</td>
+<td align="right">0.820</td>
+<td align="left">mg/dL</td>
+<td align="left">2160-0</td>
+<td align="right">8.2000000</td>
+<td align="left">mg/L</td>
+<td align="right">8751</td>
+<td align="left">LG100-4/LG6657-3</td>
+<td align="left">harmonized: regular_conversion</td>
+</tr>
+<tr class="even">
+<td align="left">2991-8</td>
+<td align="right">0.001</td>
+<td align="left">nmol/L</td>
+<td align="left">2991-8</td>
+<td align="right">0.2883998</td>
+<td align="left">ng/L</td>
+<td align="right">8725</td>
+<td align="left">LG100-4/LG11447-6</td>
+<td align="left">harmonized: mole_to_mass_conversion,
+loinc_unit_mismatch</td>
+</tr>
+<tr class="odd">
+<td align="left">2951-2</td>
+<td align="right">142.000</td>
+<td align="left">mmol/L</td>
+<td align="left">2951-2</td>
+<td align="right">142.0000000</td>
+<td align="left">mmol/L</td>
+<td align="right">8753</td>
+<td align="left">LG100-4/LG11363-5</td>
+<td align="left">harmonized: source = reference unit</td>
+</tr>
+<tr class="even">
+<td align="left">786-4</td>
+<td align="right">32.000</td>
+<td align="left">g/dL</td>
+<td align="left">786-4</td>
+<td align="right">320.0000000</td>
+<td align="left">g/L</td>
+<td align="right">8636</td>
+<td align="left">NA</td>
+<td align="left">harmonized: regular_conversion</td>
+</tr>
+</tbody>
+</table>
+</div>
 <div id="customization" class="section level2">
-<h2>5. Customization</h2>
+<h2>6. Customization</h2>
 <p>We fully acknowledge the importance of customization to accommodate
 diverse user needs and tailor the functions to specific datasets. To
-this end, the data in <code>logic_rules</code>,
-<code>reportable_interval</code>, and <code>common_words</code> are not
-hard-coded within the function scripts but are instead provided as
-separate data files in the “data” folder of the package. This approach
-allows users to benefit from the default data we have included, which
-reflects our best knowledge, while also providing the flexibility to
-append or modify the data as needed.</p>
+this end, the data in <code>common_words</code>,
+<code>logic_rules</code>, <code>reportable_interval</code>,
+<code>RWD_units_to_UCUM_V2</code>, <code>annotable_strings</code>, and
+<code>loinc_reference_unit_v1</code> are not hard-coded within the
+function scripts but are instead provided as separate data files in the
+“data” folder of the package. This approach allows users to benefit from
+the default data we have included, which reflects our best knowledge,
+while also providing the flexibility to append or modify the data as
+needed.</p>
 <p>For example, users can easily customize the <code>common_words</code>
 RData file by adding phrases that are used across different languages
 and laboratory settings. This allows the <code>clean_lab_result()</code>
@@ -3403,7 +4191,18 @@ function to better accommodate the specific linguistic and contextual
 nuances of their datasets. Similarly, users can adjust the
 <code>logic_rules</code> and <code>reportable_interval</code> data files
 for <code>validate_lab_result()</code> function to reflect the unique
-requirements or standards of their research or clinical environment.</p>
+requirements or standards of their research or clinical environment.
+Additionally, users can extend the <code>RWD_units_to_UCUM_V2</code>
+data file by adding some locally used units or strings (especially which
+have non-English letters or abbreviations) with their ucum-valid
+equivalents customizing the output of
+<code>standardize_lab_unit()</code> function. Similarly, the
+<code>annotable_strings</code> data file can extended by adding
+non-English strings for analytes locally used in units. Finally, the
+<code>harmonize_lab_unit()</code> function can be customized by adding
+reference units to LOINC codes that were not covered in the
+<code>loinc_reference_unit_v1</code> or even editing the reference units
+for some existing LOINC codes (though not recommended).</p>
 <p>By providing these customizable data files, we aim to ensure that the
 <code>lab2clean</code> package is not only powerful but also adaptable
 to the varied needs of the research and clinical communities.</p>
@@ -3458,7 +4257,7 @@ $(document).ready(function ()  {
 
     // establish options
     var options = {
-      selectors: "h1,h2,h3",
+      selectors: "h1,h2",
       theme: "bootstrap3",
       context: '.toc-content',
       hashGenerator: function (text) {

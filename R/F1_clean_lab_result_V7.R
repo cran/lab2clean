@@ -12,7 +12,7 @@ utils::globalVariables(c("first_number", "second_number", "common_words"))
 #' @param raw_result The column in `lab_data` that contains raw result values to be cleaned.
 #' @param locale A string representing the locale for the laboratory data. Defaults to "NO".
 #' @param report A report is written in the console. Defaults to "TRUE".
-#' @param n_records In case you are loading a grouped list of distinct results, then you can assign the n_records to the column that contains the frequency of each distinct result. Defaults to NA
+#' @param n_records In case you are loading a grouped list of distinct results, then you can assign the n_records to the column that contains the frequency of each distinct result. Defaults to NA.
 #'
 #' @importFrom utils data globalVariables
 #'
@@ -782,8 +782,11 @@ clean_lab_result <- function(lab_data, raw_result, locale = "NO", report = TRUE,
     cat(paste0(green, success, reset," ",blue, standard_records, reset, " distinct results (",blue, standard_records_percent, "%", reset," of the total result records) were cleaned, classified, and standardized.\n"))
   }
   end.time <- Sys.time()
-  time.taken <- round((end.time - start.time), 3)
-  cat(paste0(clock," ", bold, "Time taken is ", blue, time.taken, " minutes.\n", reset))
+  time.taken <- as.numeric(difftime(end.time, start.time, units = "secs"))
+    # Break into minutes and seconds
+  mins <- floor(time.taken / 60)
+  secs <- round(time.taken %% 60, 1)
+  cat(paste0(clock, " ", bold, "Time taken is ", blue, mins, " min, ", secs, " sec\n", reset))
 
   return(lab_data)
 }

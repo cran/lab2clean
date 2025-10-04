@@ -1,42 +1,35 @@
 ## ----setup, include=FALSE-----------------------------------------------------
 library(knitr)
+library(fansi)   # safer ANSI -> HTML
 
-# Define the custom output hook
-# Simplified custom output hook
 knit_hooks$set(output = function(x, options) {
-  if (knitr::is_html_output()) {
-    # Convert newlines to <br> for HTML output
-    x <- gsub("\n", "<br>", x)
-    # Handle ANSI colors and formatting
-    x <- gsub("\033\\[1m", "<strong>", x)  # Bold
-    x <- gsub("\033\\[31m", "<span style='color:red;'>", x)  # Red
-    x <- gsub("\033\\[32m", "<span style='color:green;'>", x)  # Green
-    x <- gsub("\033\\[34m", "<span style='color:blue;'>", x)  # Blue
-    # Ensure all open tags are closed when encountering reset
-    x <- gsub("\033\\[0m", "</span></strong>", x)
-    # Handle ANSI colors and formatting
-    x <- gsub("\u26A0", "&#9888;", x)  # Warning symbol
-    x <- gsub("\u2714", "&#10004;", x)  # Success checkmark
-    x <- gsub("\u23F0", "&#9200;", x)  # Clock
-  } else if (knitr::is_latex_output()) {
-    x <- gsub("\033\\[1m", "\\textbf{", x)  # Bold
-    x <- gsub("\033\\[31m", "\\textcolor{red}{", x)  # Red
-    x <- gsub("\033\\[32m", "\\textcolor{green}{", x)  # Green
-    x <- gsub("\033\\[34m", "\\textcolor{blue}{", x)  # Blue
-    x <- gsub("\033\\[0m", "}", x)  # Reset/Close tags
-    x <- gsub("\u26A0", "\\ding{102}", x)  # Warning
-    x <- gsub("\u2714", "\\checkmark", x)  # Success
-    x <- gsub("\u23F0", "\\clock", x)  # Clock (you might need to define this)
+  # Only touch true console text in HTML docs
+  if (!knitr::is_html_output()) return(x)
+
+  # Skip anything that is already HTML or is emitted as 'asis'
+  if (isTRUE(options$results == "asis") ||
+      grepl("^\\s*<", x) || grepl("<table|<div", x, ignore.case = TRUE)) {
+    return(x)
   }
-  return(x)
+
+  # Convert ANSI safely and keep line breaks only for console text
+  x <- fansi::sgr_to_html(x)        # handles \033[…m sequences robustly
+  x <- gsub("\n", "<br>\n", x)      # line breaks for console output only
+  x
 })
-#clean_ansi <- function(text) {
-#  gsub("\033\\[[0-9;]*m", "", text)
-#}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
+
+# keep your table setup
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", message = FALSE, warning = FALSE)
+
+library(kableExtra)
+knit_print.data.frame <- function(x, ...) {
+  knitr::asis_output(
+    kableExtra::kbl(x, ...) |>
+      kableExtra::kable_styling(
+        bootstrap_options = c("striped", "hover", "condensed", "responsive")
+      )
+  )
+}
 library(printr)
 
 ## ----install package----------------------------------------------------------
@@ -97,4 +90,50 @@ reportable_interval_subset
 data("logic_rules", package = "lab2clean")
 logic_rules <- logic_rules[logic_rules$rule_id == 3, ]
 logic_rules
+
+## ----Function_3_dummy dataset, warning=FALSE, message=FALSE-------------------
+data("Function_3_dummy", package = "lab2clean")
+head(Function_3_dummy, 6)
+
+## ----apply standardize_lab_unit, warning=FALSE, message=FALSE-----------------
+standardized_units <- standardize_lab_unit(Function_3_dummy, raw_unit = "unit_raw", n_records = "n_records")
+
+## ----standardized_units_head, warning=FALSE, message=FALSE--------------------
+head(standardized_units, 10)
+
+## ----Function_4_dummy---------------------------------------------------------
+data("Function_4_dummy", package = "lab2clean")
+head(Function_4_dummy,6)
+
+## ----apply harmonize_lab_unit, warning=FALSE, message=FALSE-------------------
+harmonized_units <- harmonize_lab_unit(Function_4_dummy,
+                                       loinc_code="loinc_code",
+                                       result_value="result_value",
+                                       result_unit="result_unit")
+
+## ----harmonized_units_head, warning=FALSE, message=FALSE----------------------
+head(harmonized_units, 6)
+
+## ----harmonized_units new_loinc_code, warning=FALSE, message=FALSE------------
+harmonized_units[which(harmonized_units$loinc_code != harmonized_units$new_loinc_code), ]
+
+## ----harmonized_units cleaning_comments, warning=FALSE, message=FALSE---------
+levels(factor(harmonized_units$cleaning_comments))
+
+## ----preferred_unit_system, warning=FALSE, message=FALSE----------------------
+Function_4_dummy_subset <- Function_4_dummy[c(27, 15, 38, 45),, drop = FALSE]
+harmonized_units <- harmonize_lab_unit(Function_4_dummy_subset,
+                                       loinc_code="loinc_code",
+                                       result_value="result_value",
+                                       result_unit="result_unit",
+                                       report = FALSE,
+                                       preferred_unit_system = "SI")
+harmonized_units
+harmonized_units <- harmonize_lab_unit(Function_4_dummy_subset,
+                                       loinc_code="loinc_code",
+                                       result_value="result_value",
+                                       result_unit="result_unit", 
+                                       report = FALSE,
+                                       preferred_unit_system = "conventional")
+harmonized_units
 

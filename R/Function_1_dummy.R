@@ -2,9 +2,9 @@
 #'
 #' A dataset containing dummy data for demonstrating function 1 ("clean_lab_result").
 #'
-#' \itemize{
-#'   \item raw_result: The raw result.
-#'   \item frequency: The frequency of the raw result.
+#' \describe{
+#'   \item{raw_result}{The raw result.}
+#'   \item{frequency}{The frequency of the raw result.}
 #' }
 #'
 #' @docType data

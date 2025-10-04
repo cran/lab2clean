@@ -14,9 +14,9 @@ data(Function_1_dummy)
 A dataset containing dummy data for demonstrating function 1 ("clean_lab_result").
 }
 \details{
-\itemize{
-\item raw_result: The raw result.
-\item frequency: The frequency of the raw result.
+\describe{
+  \item{raw_result}{The raw result.}
+  \item{frequency}{The frequency of the raw result.}
 }
 }
 \keyword{datasets}

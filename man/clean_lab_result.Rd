@@ -15,21 +15,19 @@ clean_lab_result(
 \arguments{
 \item{lab_data}{A data frame containing laboratory data.}
 
-\item{raw_result}{The column in \code{lab_data} that contains raw result values to be cleaned.}
+\item{raw_result}{The column in `lab_data` that contains raw result values to be cleaned.}
 
 \item{locale}{A string representing the locale for the laboratory data. Defaults to "NO".}
 
 \item{report}{A report is written in the console. Defaults to "TRUE".}
 
-\item{n_records}{In case you are loading a grouped list of distinct results, then you can assign the n_records to the column that contains the frequency of each distinct result. Defaults to NA}
+\item{n_records}{In case you are loading a grouped list of distinct results, then you can assign the n_records to the column that contains the frequency of each distinct result. Defaults to NA.}
 }
 \value{
-A modified \code{lab_data} data frame with additional columns:
-\itemize{
-\item \code{clean_result}: Cleaned and standardized result values.
-\item \code{scale_type}: The scale type of result values (Quantitative, Ordinal, Nominal).
-\item \code{cleaning_comments}: Comments about the cleaning process for each record.
-}
+A modified `lab_data` data frame with additional columns:
+  * `clean_result`: Cleaned and standardized result values.
+  * `scale_type`: The scale type of result values (Quantitative, Ordinal, Nominal).
+  * `cleaning_comments`: Comments about the cleaning process for each record.
 }
 \description{
 This function is designed to clean and standardize laboratory result values.
@@ -39,28 +37,26 @@ designed for cleaning laboratory datasets.
 }
 \details{
 The function undergoes the following methodology:
-\enumerate{
-\item Clear Typos: Removes typographical errors and extraneous characters.
-\item Handle Extra Variables: Identifies and separates extra variables from result values.
-\item Detect and Assign Scale Types: Identifies and assigns the scale type using regular expressions.
-\item Number Formatting: Standardizes number formats based on predefined rules and locale.
-\item Mining Text Results: Identifies common words and patterns in text results.
-}
+  1. Clear Typos: Removes typographical errors and extraneous characters.
+  2. Handle Extra Variables: Identifies and separates extra variables from result values.
+  3. Detect and Assign Scale Types: Identifies and assigns the scale type using regular expressions.
+  4. Number Formatting: Standardizes number formats based on predefined rules and locale.
+  5. Mining Text Results: Identifies common words and patterns in text results.
 
 Internal Datasets:
-The function uses an internal dataset; \code{common_words_languages.csv} which contains common words
+The function uses an internal dataset; `common_words_languages.csv` which contains common words
 in various languages used for pattern identification in text result values.
 }
 \note{
 This function is part of a larger data cleaning pipeline and should be evaluated in that context.
 The package framework includes functions for cleaning result values and validating quantitative results for each test identifier.
 
-Performance of the function can be affected by the size of \code{lab_data}. Considerations for data size
+Performance of the function can be affected by the size of `lab_data`. Considerations for data size
 or pre-processing may be needed.
 }
 \seealso{
 Function 2 for result validation,
 }
 \author{
-Ahmed Zayed \href{mailto:ahmed.zayed@kuleuven.be}{ahmed.zayed@kuleuven.be}
+Ahmed Zayed <ahmed.zayed@kuleuven.be>
 }

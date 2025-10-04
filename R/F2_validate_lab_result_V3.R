@@ -285,10 +285,12 @@ validate_lab_result <- function(lab_data, result_value, result_unit, loinc_code,
     plausibility_check <- round((sum(is.na(lab_data$flag))/length(lab_data$flag) * 100), 3)
     cat(paste0(green, success, reset," ",blue, plausibility_check, "%", reset, " of the lab data records were validated with no flag detected.\n"))
   }
-
   end.time <- Sys.time()
-  time.taken <- round((end.time - start.time), 3)
-  cat(paste0(clock," ", bold, "Time taken is ", blue, time.taken, " minutes.\n", reset))
+  time.taken <- as.numeric(difftime(end.time, start.time, units = "secs"))
+  # Break into minutes and seconds
+  mins <- floor(time.taken / 60)
+  secs <- round(time.taken %% 60, 1)
+  cat(paste0(clock, " ", bold, "Time taken is ", blue, mins, " min, ", secs, " sec\n", reset))
 
   return(lab_data)
 }

@@ -1,59 +1,56 @@
 ---
 title: "Automatically Cleaning Laboratory Results in R using the 'lab2clean' package"
-author: "Ahmed Zayed, Arne Janseens, Pavlos Mamouris"
+author: "Ahmed Zayed, Ilias Sarikakis, Arne Janssens, Pavlos Mamouris"
 output:
   rmarkdown::html_document:
-    toc: yes
-    toc_float: yes
     theme: default
-  pdf_document:
-    toc: yes
+    toc: true
+    toc_depth: 2
+    toc_float: true
 vignette: >
   %\VignetteIndexEntry{Automatically Cleaning Laboratory Results in R using the 'lab2clean' package}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---
 
+<script>
+$(document).ready(function(){
+    $('[data-toggle="popover"]').popover(); 
+});
+</script>
 
 ```{r setup, include=FALSE}
 library(knitr)
+library(fansi)   # safer ANSI -> HTML
 
-# Define the custom output hook
-# Simplified custom output hook
 knit_hooks$set(output = function(x, options) {
-  if (knitr::is_html_output()) {
-    # Convert newlines to <br> for HTML output
-    x <- gsub("\n", "<br>", x)
-    # Handle ANSI colors and formatting
-    x <- gsub("\033\\[1m", "<strong>", x)  # Bold
-    x <- gsub("\033\\[31m", "<span style='color:red;'>", x)  # Red
-    x <- gsub("\033\\[32m", "<span style='color:green;'>", x)  # Green
-    x <- gsub("\033\\[34m", "<span style='color:blue;'>", x)  # Blue
-    # Ensure all open tags are closed when encountering reset
-    x <- gsub("\033\\[0m", "</span></strong>", x)
-    # Handle ANSI colors and formatting
-    x <- gsub("\u26A0", "&#9888;", x)  # Warning symbol
-    x <- gsub("\u2714", "&#10004;", x)  # Success checkmark
-    x <- gsub("\u23F0", "&#9200;", x)  # Clock
-  } else if (knitr::is_latex_output()) {
-    x <- gsub("\033\\[1m", "\\textbf{", x)  # Bold
-    x <- gsub("\033\\[31m", "\\textcolor{red}{", x)  # Red
-    x <- gsub("\033\\[32m", "\\textcolor{green}{", x)  # Green
-    x <- gsub("\033\\[34m", "\\textcolor{blue}{", x)  # Blue
-    x <- gsub("\033\\[0m", "}", x)  # Reset/Close tags
-    x <- gsub("\u26A0", "\\ding{102}", x)  # Warning
-    x <- gsub("\u2714", "\\checkmark", x)  # Success
-    x <- gsub("\u23F0", "\\clock", x)  # Clock (you might need to define this)
+  # Only touch true console text in HTML docs
+  if (!knitr::is_html_output()) return(x)
+
+  # Skip anything that is already HTML or is emitted as 'asis'
+  if (isTRUE(options$results == "asis") ||
+      grepl("^\\s*<", x) || grepl("<table|<div", x, ignore.case = TRUE)) {
+    return(x)
   }
-  return(x)
+
+  # Convert ANSI safely and keep line breaks only for console text
+  x <- fansi::sgr_to_html(x)        # handles \033[…m sequences robustly
+  x <- gsub("\n", "<br>\n", x)      # line breaks for console output only
+  x
 })
-#clean_ansi <- function(text) {
-#  gsub("\033\\[[0-9;]*m", "", text)
-#}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
+
+# keep your table setup
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", message = FALSE, warning = FALSE)
+
+library(kableExtra)
+knit_print.data.frame <- function(x, ...) {
+  knitr::asis_output(
+    kableExtra::kbl(x, ...) |>
+      kableExtra::kable_styling(
+        bootstrap_options = c("striped", "hover", "condensed", "responsive")
+      )
+  )
+}
 library(printr)
 ```
 <style>
@@ -69,9 +66,11 @@ library(printr)
 
 ## 1. Introduction
 
-Navigating the shift of clinical laboratory data from primary everyday clinical use to secondary research purposes presents a significant challenge. Given the substantial time and expertise required to preprocess and clean this data and the lack of all-in-one tools tailored for this need, we developed our algorithm `lab2clean` as an open-source R-package. `lab2clean` package is set to automate and standardize the intricate process of cleaning clinical laboratory results. With a keen focus on improving the data quality of laboratory result values, while assuming compliance with established standards like LOINC and UCUM for test identifiers and units, our goal is to equip researchers with a straightforward, plug-and-play tool, making it smoother for them to unlock the true potential of clinical laboratory data in clinical research and clinical machine learning (ML) model development. Version 1.0 of the algorithm is described in detail in Zayed et al. 2024 [https://doi.org/10.1186/s12911-024-02652-7]
+Navigating the shift of clinical laboratory data from primary everyday clinical use to secondary research purposes presents a significant challenge. Given the substantial time and expertise required to preprocess and clean this data and the lack of all-in-one tools tailored for this need, we developed our algorithm `lab2clean` as an open-source R-package. `lab2clean` package is set to automate and standardize the intricate process of cleaning clinical laboratory results. With a keen focus on improving the data quality of laboratory result values and units, our goal is to equip researchers with a straightforward, plug-and-play tool, making it smoother for them to unlock the true potential of clinical laboratory data in clinical research and clinical machine learning (ML) model development. 
 
-The `lab2clean` package contains two key functions: `clean_lab_result()` and `validate_lab_result()`. The `clean_lab_result()` function cleans and standardizes the laboratory results, and the `validate_lab_result()` function performs validation to ensure the plausibility of these results. This vignette aims to explain the theoretical background, usage, and customization of these functions.
+The `lab2clean` package contains four key functions: Two functions to clean & validate result values (Version 1.0) are described in detail in Zayed et al. (2024) [https://doi.org/10.1186/s12911-024-02652-7]. The `clean_lab_result()` function cleans and standardizes the laboratory results, and the `validate_lab_result()` function performs validation to ensure the plausibility of these results. The other two functions to standardize & harmonize result units (added in Version 2.0) are described in detail in Zayed et al. (2025) [https://doi.org/10.1016/j.ijmedinf.2025.106131]. The `standardize_lab_unit()` function cleans and standardize formats of laboratory units of measurement according to the Unified Code for Units of Measure (UCUM), and the `harmonize_lab_unit()` function harmonizes the units found in a laboratory data set to reference units following either SI or Conventional units, converting the numeric result values. 
+
+This vignette aims to explain the theoretical background, usage, and customization of these functions.
 
 <br>
 
@@ -172,7 +171,7 @@ In addition to the common words, when there is a space between a numeric value a
 
 ## 4. Function 2: Validate results
 
-The `validate_lab_result()` has six arguments:
+The `validate_lab_result()` has seven arguments:
 
 * `lab_data` : A data frame containing laboratory data
 
@@ -242,11 +241,137 @@ logic_rules
 
 * Patient 10000003 has both `logic_flag` and `duplicate`. The `duplicate` means that this patient has a duplicate row, whereas the `logic_flag` should be interpreted as follows. For the loinc_code "2093-3", which is cholesterol, we need that the "2093-3" > "2085-9" + "13457-7", or equivalently cholesterol > hdl cholesterol + ldl cholesterol (from the logic rules table). Therefore for patient 10000003, we have a logic flag because LDL ("13457-7") equals 100.0 and HDL ("2085-9") equals 130.0. Total cholesterol ("2093-3") equals 230. Therefore we see that the rule "2093-3" > "2085-9" + "13457-7" is not satisfied because we have 230 > 100+130, i.e. 230>230, which is clearly false, and thus a logic flag is created.
 
-## 5. Customization
+## 4. Function 3: Clean and Standardize units of measurement:
 
-We fully acknowledge the importance of customization to accommodate diverse user needs and tailor the functions to specific datasets. To this end, the data in `logic_rules`, `reportable_interval`, and `common_words` are not hard-coded within the function scripts but are instead provided as separate data files in the "data" folder of the package. This approach allows users to benefit from the default data we have included, which reflects our best knowledge, while also providing the flexibility to append or modify the data as needed.
+The `standardize_lab_unit()` has four arguments:
+
+* `lab_data` : A dataset containing laboratory data
+
+* `raw_unit` : The column in `lab_data` that contains raw units to be cleaned.
+
+* `report` : A report is written in the console. Defaults to "TRUE".
+
+* `n_records` : In case you are loading a grouped list of distinct results, then you can assign the n_records to the column that contains the frequency of each distinct result. Defaults to NA
+
+Let us check how our package standardizes the units of measurement using the `standardize_lab_unit()` function. Let us consider the `Function_3_dummy` data that contains 32 rows and inspect its first 6 rows;
+
+```{r Function_3_dummy dataset, warning=FALSE, message=FALSE}
+data("Function_3_dummy", package = "lab2clean")
+head(Function_3_dummy, 6)
+```
+
+This dataset -for demonstration purposes- contains three columns: `unit_raw`, `n_records`, and `note`. The `unit_raw` column holds raw laboratory units as reported in the database, and `frequency` indicates how often each unit appeared, while the `note` details the different cases handled by our function.
+
+```{r apply standardize_lab_unit, warning=FALSE, message=FALSE} 
+standardized_units <- standardize_lab_unit(Function_3_dummy, raw_unit = "unit_raw", n_records = "n_records")
+```
+
+This function creates two new columns:
+
+```{r standardized_units_head, warning=FALSE, message=FALSE}
+head(standardized_units, 10)
+```
+
+1- `ucum_code`: Cleaned and standardized units according to UCUM syntax.
+
+2- `cleaning_comments`: Comments about the cleaning process for each unit.
+
+## 5. Function 4: Harmonize results to reference units
+
+The `harmonize_lab_unit()` has six arguments:
+
+* `lab_data` : A data frame containing laboratory data
+
+* `result_value` : The column in lab_data with quantitative result values for validation
+
+* `result_unit` : The column in lab_data with result units in a UCUM-valid format
+
+* `loinc_code` : The column in lab_data indicating the LOINC code of the laboratory test
+
+* `preferred_unit_system` : A string representing the preference of the user for the unit system used for standardization. Defaults to "SI", the other option is "Conventional".
+
+* `report` : A report is written in the console. Defaults to "TRUE".
+
+Let us demonstrate the `harmonize_lab_unit()` function using `Function_4_dummy` and inspect the first six rows:
+
+```{r Function_4_dummy, }
+data("Function_4_dummy", package = "lab2clean")
+head(Function_4_dummy,6)
+```
+
+This dataset -for demonstration purposes- contains three columns: `loinc_code`, `result_value` and the `result_unit`.
+
+```{r apply harmonize_lab_unit, warning=FALSE, message=FALSE}
+harmonized_units <- harmonize_lab_unit(Function_4_dummy,
+                                       loinc_code="loinc_code",
+                                       result_value="result_value",
+                                       result_unit="result_unit")
+```
+
+This function creates six different columns:
+
+```{r harmonized_units_head, warning=FALSE, message=FALSE}
+head(harmonized_units, 6)
+```
+
+1- `harmonized_unit`: Harmonized units according to the preferred unit system.
+
+2- `OMOP_concept_id`: The concept id of the harmonized unit, necessary for databases standardized to the OMOP Common Data Model.
+
+3- `new_value`: The result value after the conversion.
+
+4- `new_loinc_code`: The unit conversion can lead to a new loinc code than the reported one in two cases:
+    * If the reported unit did not match the property of the given loinc code. For example "mmol/L" with a LOINC code of mass concentration property --> "loinc_unitsystem_mismatch" is added in the cleaning comments.
+    * If a mass<>molar conversion was executed.
+
+```{r harmonized_units new_loinc_code, warning=FALSE, message=FALSE}
+harmonized_units[which(harmonized_units$loinc_code != harmonized_units$new_loinc_code), ]
+```
+
+5- `property_group_id`: the code of the LOINC group (parent group ID / Group ID).
+
+6- `cleaning_comments`: Comments about the harmonization and conversion process for each lab result with two main cases:
+   * Success: harmonized with same value or with converted new value:
+     - No conversion in case of similar or equivalent source and reference units.
+     - Conversion with method clarified whether regular or mass<>molar conversion.
+   * Failure: not harmonized with detailed reason for each failure case.
+
+```{r harmonized_units cleaning_comments, warning=FALSE, message=FALSE}
+levels(factor(harmonized_units$cleaning_comments))
+```
+
+
+In the `harmonize_lab_unit()` function, we have an argument named `preferred_unit_system`.
+
+* `preferred_unit_system`:
+According to the user preference, the reference units may change from SI units (usually molar concentration) to conventional units commonly used in practice (usually mass concentration) through mass<>molar conversions. For LOINC codes which don't have mass<>molar equivalent, the conventional and SI units were considered the same. For some LOINC codes, the molar concentration is the one used conventionally. Examples of differences in using different `preferred_unit_system` is detailed as follows:
+
+```{r preferred_unit_system, warning=FALSE, message=FALSE}
+Function_4_dummy_subset <- Function_4_dummy[c(27, 15, 38, 45),, drop = FALSE]
+harmonized_units <- harmonize_lab_unit(Function_4_dummy_subset,
+                                       loinc_code="loinc_code",
+                                       result_value="result_value",
+                                       result_unit="result_unit",
+                                       report = FALSE,
+                                       preferred_unit_system = "SI")
+harmonized_units
+harmonized_units <- harmonize_lab_unit(Function_4_dummy_subset,
+                                       loinc_code="loinc_code",
+                                       result_value="result_value",
+                                       result_unit="result_unit", 
+                                       report = FALSE,
+                                       preferred_unit_system = "conventional")
+harmonized_units
+```
+
+
+## 6. Customization
+
+We fully acknowledge the importance of customization to accommodate diverse user needs and tailor the functions to specific datasets. To this end, the data in `common_words`, `logic_rules`, `reportable_interval`, `RWD_units_to_UCUM_V2`, `annotable_strings`, and `loinc_reference_unit_v1` are not hard-coded within the function scripts but are instead provided as separate data files in the "data" folder of the package. This approach allows users to benefit from the default data we have included, which reflects our best knowledge, while also providing the flexibility to append or modify the data as needed.
 
 For example, users can easily customize the `common_words` RData file by adding phrases that are used across different languages and laboratory settings. This allows the `clean_lab_result()` function to better accommodate the specific linguistic and contextual nuances of their datasets. Similarly, users can adjust the `logic_rules` and `reportable_interval` data files for `validate_lab_result()` function to reflect the unique requirements or standards of their research or clinical environment.
+Additionally, users can extend the `RWD_units_to_UCUM_V2` data file by adding some locally used units or strings (especially which have non-English letters or abbreviations) with their ucum-valid equivalents customizing the output of `standardize_lab_unit()` function. Similarly, the `annotable_strings` data file can extended by adding non-English strings for analytes locally used in units. 
+Finally, the `harmonize_lab_unit()` function can be customized by adding reference units to LOINC codes that were not covered in the `loinc_reference_unit_v1` or even editing the reference units for some existing LOINC codes (though not recommended).  
 
 By providing these customizable data files, we aim to ensure that the `lab2clean` package is not only powerful but also adaptable to the varied needs of the research and clinical communities.
 
